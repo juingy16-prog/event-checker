@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>이벤트 참여자 확인</title>
+<style>
+html{margin:0;padding:0;width:100%;min-height:100vh;-webkit-text-size-adjust:100%;text-size-adjust:100%;background:#12141e;}
+body{margin:0;padding:0;width:100%;min-height:100vh;background:#12141e;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#12141e;--surf:#1a1e2e;--card:#20253a;--card2:#262c42;
+  --bd:#2e3550;--bd2:#3d4568;
+  --t1:#dde2f5;--t2:#7b87b8;--t3:#4a5280;
+  --g-bg:#0b2218;--g-t:#2ed87a;--g-bd:#1a4a30;
+  --b-bg:#0d1630;--b-t:#5f87f5;--b-bd:#1a2d68;
+  --r-bg:#2a0d0d;--r-t:#e85070;--r-bd:#5a1a2a;
+  --on:#2a3050;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:14px;color:var(--t1);background:var(--bg);word-break:keep-all;overflow-wrap:break-word;overflow-x:hidden;}
+#root,#loading{width:100%;}
+.hd{background:var(--surf);border-bottom:1px solid var(--bd);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:20;}
+.hd-l{min-width:0;flex:1;}
+.hd-title{font-size:15px;font-weight:600;color:var(--t1);}
+.hd-sub{font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hd-r{display:flex;gap:6px;flex-shrink:0;align-items:center;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;border-radius:20px;font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--bd2);color:var(--t2);background:var(--card2);white-space:nowrap;line-height:1;transition:opacity .1s;}
+.chip:active{opacity:.7;}
+.chip.blue{color:var(--b-t);background:var(--b-bg);border-color:var(--b-bd);}
+.chip.green{color:var(--g-t);background:var(--g-bg);border-color:var(--g-bd);}
+.chip.red{color:var(--r-t);background:var(--r-bg);border-color:var(--r-bd);}
+.sync-bar{background:var(--surf);border-bottom:1px solid var(--bd);padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--g-t);margin-right:5px;vertical-align:middle;}
+.sync-info{font-size:11px;color:var(--t3);}
+.search-wrap{background:var(--surf);border-bottom:1px solid var(--bd);padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+.stype{display:flex;background:var(--card);border-radius:10px;padding:3px;gap:3px;}
+.stype-btn{flex:1;padding:8px 0;font-size:13px;font-family:inherit;border:none;border-radius:8px;cursor:pointer;color:var(--t2);background:transparent;font-weight:400;line-height:1;transition:all .15s;}
+.stype-btn.on{background:var(--card2);color:var(--t1);font-weight:600;border:1px solid var(--bd2);}
+.sbox{position:relative;}
+.sicon{position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;}
+.sinp{width:100%;height:52px;background:var(--card2);border:1px solid var(--bd);border-radius:10px;color:var(--t1);font-size:17px;padding:0 58px 0 40px;outline:none;-webkit-appearance:none;font-family:"Courier New",Courier,monospace;}
+.sinp.name-m{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;}
+.sinp:focus{border-color:var(--b-t);}
+.sinp::placeholder{color:var(--t3);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:14px;}
+.cbtn{display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--bd2);border:none;border-radius:8px;padding:6px 11px;font-size:13px;color:var(--t2);cursor:pointer;font-family:inherit;}
+.stats{padding:10px 14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--bg);border-bottom:1px solid var(--bd);}
+.stat{background:var(--surf);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;}
+.slbl{font-size:11px;color:var(--t3);margin-bottom:2px;}
+.sval{font-size:22px;font-weight:600;color:var(--t1);}
+.tabbar{background:var(--surf);border-bottom:1px solid var(--bd);padding:0 14px;display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.tabbar::-webkit-scrollbar{display:none;}
+.tbtn{background:none;border:none;border-bottom:2px solid transparent;padding:11px 12px;font-size:13px;font-family:inherit;color:var(--t2);cursor:pointer;white-space:nowrap;line-height:1;}
+.tbtn.on{color:var(--t1);font-weight:600;border-bottom-color:var(--b-t);}
+.tcnt{font-size:11px;color:var(--t3);margin-left:3px;}
+.pbar{background:var(--bg);border-bottom:1px solid var(--bd);padding:8px 14px;display:flex;overflow-x:auto;scrollbar-width:none;gap:6px;-webkit-overflow-scrolling:touch;}
+.pbar::-webkit-scrollbar{display:none;}
+.pchip{background:transparent;border:1px solid transparent;border-radius:20px;padding:5px 12px;font-size:12px;font-family:inherit;color:var(--t2);cursor:pointer;white-space:nowrap;line-height:1;}
+.pchip.on{background:var(--on);border-color:var(--bd2);color:var(--t1);font-weight:600;}
+.fsec{background:var(--surf);border-bottom:1px solid var(--bd);padding:8px 14px;display:flex;flex-direction:column;gap:7px;}
+.frow{display:flex;align-items:center;gap:6px;}
+.flbl{font-size:11px;color:var(--t3);flex-shrink:0;width:38px;}
+.fchips{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;}
+.fchips::-webkit-scrollbar{display:none;}
+.fchip{background:var(--card2);border:1px solid var(--bd);border-radius:16px;padding:5px 11px;font-size:12px;font-family:inherit;color:var(--t2);cursor:pointer;white-space:nowrap;line-height:1;}
+.fchip.og{background:var(--g-bg);border-color:var(--g-bd);color:var(--g-t);font-weight:600;}
+.fchip.ob{background:var(--b-bg);border-color:var(--b-bd);color:var(--b-t);font-weight:600;}
+.slbl2{padding:8px 14px 0;font-size:12px;color:var(--t2);display:none;}
+.list{padding:10px 14px 40px;background:var(--bg);}
+.empty-r{padding:48px 14px;text-align:center;color:var(--t3);font-size:14px;background:var(--bg);display:none;}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px;}
+.card.done{border-left:3px solid var(--g-t);}
+.ctop{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;}
+.cname{font-size:16px;font-weight:600;color:var(--t1);}
+.cbdgs{display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.badge{font-size:11px;padding:2px 7px;border-radius:12px;white-space:nowrap;line-height:1.4;}
+.bg{background:var(--g-bg);color:var(--g-t);}
+.bb{background:var(--b-bg);color:var(--b-t);}
+.cmeta{font-size:12px;color:var(--t2);margin-bottom:3px;}
+.cph{font-size:13px;color:var(--t1);font-family:"Courier New",Courier,monospace;margin-bottom:4px;}
+.ccr{font-size:11px;color:var(--t3);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;margin-left:4px;}
+.cnote{font-size:12px;color:var(--t2);padding:4px 9px;background:var(--card2);border-radius:6px;border-left:2px solid var(--bd2);margin-bottom:4px;}
+.cbtns{display:flex;gap:8px;margin-top:10px;}
+.abtn{flex:1;min-width:0;height:50px;padding:0 4px;font-size:14px;font-family:inherit;border-radius:10px;cursor:pointer;border:1px solid;line-height:1.3;word-break:keep-all;font-weight:500;transition:opacity .12s;}
+.abtn:active:not([disabled]){opacity:.7;}
+.abtn[disabled]{cursor:not-allowed;opacity:.28;}
+.aid{background:var(--card2);color:var(--t2);border-color:var(--bd);}
+.aid.on{background:var(--g-bg);color:var(--g-t);border-color:var(--g-bd);}
+.abd{background:var(--card2);color:var(--t2);border-color:var(--bd);}
+.abd.on{background:var(--b-bg);color:var(--b-t);border-color:var(--b-bd);}
+.abd[disabled]{background:var(--card);color:var(--t3);border-color:var(--bd);}
+.hint{font-size:11px;color:var(--t3);text-align:center;margin-top:5px;}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;}
+.spin{width:32px;height:32px;border:2px solid var(--bd);border-top-color:var(--b-t);border-radius:50%;animation:sp .8s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.ltxt{font-size:13px;color:var(--t2);}
+.empty-s{width:100%;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0;}
+.empty-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;width:90%;max-width:320px;padding:48px 0;}
+.eico{width:64px;height:64px;border-radius:50%;background:var(--surf);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;}
+.etit{font-size:18px;font-weight:600;color:var(--t1);letter-spacing:-0.3px;}
+.esub{font-size:13px;color:var(--t2);line-height:2;}
+.ctag{display:inline-block;font-family:"Courier New",Courier,monospace;font-size:11px;background:var(--card);border:1px solid var(--bd);padding:4px 10px;border-radius:6px;color:var(--b-t);margin-top:2px;letter-spacing:0.3px;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:flex-end;justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:var(--surf);border:1px solid var(--bd);border-radius:16px 16px 0 0;padding:24px 20px;width:100%;max-width:500px;}
+.mtit{font-size:15px;font-weight:600;color:var(--t1);margin-bottom:8px;}
+.msub{font-size:13px;color:var(--t2);margin-bottom:20px;line-height:1.6;}
+.mbtns{display:flex;gap:10px;}
+.mbtns button{flex:1;height:48px;border-radius:10px;font-size:14px;font-family:inherit;cursor:pointer;font-weight:500;border:1px solid;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">
+  <div class="spin"></div>
+  <div class="ltxt">명단을 불러오는 중…</div>
+</div>
+
+<div id="root" style="display:none">
+  <div class="hd">
+    <div class="hd-l">
+      <div class="hd-title">참여자 확인</div>
+      <div class="hd-sub" id="total-lbl">명단이 없습니다</div>
+    </div>
+    <div class="hd-r">
+      <button class="chip red" id="reset-btn" style="display:none" onclick="openReset()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>삭제
+      </button>
+      <button class="chip" id="sync-btn" style="display:none" onclick="doSync()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>업데이트
+      </button>
+      <label>
+        <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none">
+        <span class="chip blue" style="cursor:pointer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>업로드
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div id="sync-bar" class="sync-bar" style="display:none">
+    <span class="sync-info" id="sync-info"></span>
+    <button class="chip" onclick="loadDemo()" style="font-size:11px;padding:4px 8px;">데모</button>
+  </div>
+
+  <div id="mc" style="display:none">
+    <div class="search-wrap">
+      <div class="stype">
+        <button class="stype-btn on" id="sp" onclick="setSType('phone')">핸드폰 번호</button>
+        <button class="stype-btn" id="sn" onclick="setSType('name')">이름</button>
+      </div>
+      <div class="sbox">
+        <svg class="sicon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="sinp" type="text" id="si" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="핸드폰 뒷자리 4자리" oninput="onSrch(this.value)">
+        <button class="cbtn" id="cb" onclick="clrSrch()">초기화</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="slbl">전체</div><div class="sval" id="sv-t">0</div></div>
+      <div class="stat"><div class="slbl">출발탑승</div><div class="sval" id="sv-i">0</div></div>
+      <div class="stat"><div class="slbl">귀가탑승</div><div class="sval" id="sv-b">0</div></div>
+    </div>
+
+    <div id="tabs">
+      <div class="tabbar" id="gtabs"></div>
+      <div class="pbar" id="ptabs"></div>
+    </div>
+
+    <div class="fsec">
+      <div class="frow"><span class="flbl">출발</span><div class="fchips" id="ic"></div></div>
+      <div class="frow"><span class="flbl">귀가</span><div class="fchips" id="bc"></div></div>
+    </div>
+
+    <div class="slbl2" id="sl2"></div>
+    <div class="list" id="cl"></div>
+    <div class="empty-r" id="em"></div>
+  </div>
+
+  <div class="empty-s" id="es">
+    <div class="empty-inner">
+      <div class="eico">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </div>
+      <div class="etit">명단을 업로드하세요</div>
+      <div class="esub">
+        업로드하면 이 페이지 링크를<br>
+        공유받은 모든 직원이 같은 명단을<br>
+        자동으로 보게 됩니다
+      </div>
+      <div style="width:100%;background:var(--surf);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:8px;font-weight:500;">필수 컬럼명</div>
+        <div style="font-family:'Courier New',Courier,monospace;font-size:11px;background:var(--card);border:1px solid var(--bd);padding:6px 10px;border-radius:6px;color:var(--b-t);line-height:1.8;">게임 / 픽업위치 / 이름<br>연락처 / 통신사 / 비고</div>
+      </div>
+      <button class="chip green" style="padding:11px 22px;font-size:13px;border-radius:10px;" onclick="dlSample()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M5 20h14"/></svg>
+        샘플 엑셀 다운로드
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ro">
+  <div class="modal">
+    <div class="mtit">명단 전체 삭제</div>
+    <div class="msub">업로드된 명단과 모든 확인 상태가 삭제됩니다.<br>링크를 공유받은 모든 직원에게 반영됩니다.</div>
+    <div class="mbtns">
+      <button style="background:var(--card2);color:var(--t2);border-color:var(--bd);" onclick="closeReset()">취소</button>
+      <button style="background:var(--r-bg);color:var(--r-t);border-color:var(--r-bd);" onclick="doReset()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ===== SUPABASE 설정 — 아래 두 줄을 본인 값으로 교체하세요 =====
+var SB_URL = 'https://uzutpzivljilrzdteyxm.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6dXRweml2bGppbHJ6ZHRleXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODUyOTUsImV4cCI6MjA5MzM2MTI5NX0.-nld61ENtQUiDc-sCcC5DQJitDnj1iPiL1KJF0jmL48';
+// ==============================================================
+var sbc = supabase.createClient(SB_URL, SB_KEY);
+
+var C=[],SM={},sG=null,sP=null,sq='',idF='all',bdF='all',sType='phone';
+var realtimeChannel=null;
+
+var DEMO=[
+  {g:'리그오브레전드',p:'강남역',n:'김민준',t:'01012341111',cr:'SKT',nt:''},
+  {g:'리그오브레전드',p:'강남역',n:'이서연',t:'01056782222',cr:'KT',nt:''},
+  {g:'리그오브레전드',p:'강남역',n:'박지호',t:'01099993333',cr:'LGU+',nt:'VIP'},
+  {g:'리그오브레전드',p:'홍대입구',n:'최예린',t:'01034564444',cr:'SKT',nt:''},
+  {g:'리그오브레전드',p:'홍대입구',n:'정우진',t:'01078905555',cr:'KT',nt:''},
+  {g:'리그오브레전드',p:'잠실역',n:'한수빈',t:'01011116666',cr:'SKT',nt:''},
+  {g:'발로란트',p:'강남역',n:'오태양',t:'01055557777',cr:'LGU+',nt:''},
+  {g:'발로란트',p:'강남역',n:'임나은',t:'01099998888',cr:'SKT',nt:'알레르기'},
+  {g:'발로란트',p:'홍대입구',n:'강도현',t:'01012349999',cr:'KT',nt:''},
+  {g:'발로란트',p:'홍대입구',n:'윤지아',t:'01056780000',cr:'SKT',nt:''},
+  {g:'발로란트',p:'잠실역',n:'백승현',t:'01099991234',cr:'LGU+',nt:''},
+  {g:'배틀그라운드',p:'강남역',n:'신하은',t:'01011115678',cr:'SKT',nt:''},
+  {g:'배틀그라운드',p:'홍대입구',n:'구준혁',t:'01055559012',cr:'KT',nt:''},
+  {g:'배틀그라운드',p:'잠실역',n:'류채원',t:'01099993456',cr:'SKT',nt:''},
+];
+
+// ─── DB 로드 ───────────────────────────────────────────────
+async function loadFromDB(){
+  var res=await sbc.from('customers').select('*').order('id');
+  if(res.error)throw res.error;
+  return res.data||[];
+}
+
+function rowsToState(rows){
+  C=rows.map(function(r){
+    return {id:r.id,game:r.game,pickup:r.pickup,name:r.name,contact:r.contact,carrier:r.carrier,notes:r.notes};
+  });
+  SM={};
+  rows.forEach(function(r){
+    if(r.checked_in||r.boarded_back)SM[r.id]={i:r.checked_in,b:r.boarded_back};
+  });
+}
+
+// ─── 초기화 ────────────────────────────────────────────────
+async function init(){
+  try{
+    var rows=await loadFromDB();
+    if(rows.length>0){
+      rowsToState(rows);
+      var gs=uniq(C.map(function(c){return c.game;}));
+      sG=gs[0]||null;
+      showMain();
+      setupRealtime();
+    }else{showEmpty();}
+  }catch(e){
+    console.error('DB 연결 오류:',e);
+    showEmpty();
+  }
+}
+
+// ─── 실시간 동기화 ─────────────────────────────────────────
+function setupRealtime(){
+  if(realtimeChannel)sbc.removeChannel(realtimeChannel);
+  realtimeChannel=sbc.channel('customers-rt')
+    .on('postgres_changes',{event:'*',schema:'public',table:'customers'},async function(){
+      try{
+        var rows=await loadFromDB();
+        rowsToState(rows);
+        rCards();upSyncBar();
+      }catch(e){}
+    })
+    .subscribe();
+}
+
+// ─── 화면 전환 ─────────────────────────────────────────────
+function showMain(){
+  hide('loading');show('root');
+  hide('es');show('mc');
+  var bar=id('sync-bar');if(bar)bar.style.display='flex';
+  id('reset-btn').style.display='inline-flex';
+  id('sync-btn').style.display='inline-flex';
+  id('total-lbl').textContent='총 '+C.length+'명 등록됨';
+  upSyncBar();
+  rGTabs();rPTabs();rChips();rCards();
+}
+function showEmpty(){
+  hide('loading');show('root');
+  var e=id('es');if(e)e.style.display='flex';
+  hide('mc');
+}
+
+// ─── 상태바 ────────────────────────────────────────────────
+function nowStr(){var d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes());}
+function pad(n){return n<10?'0'+n:n;}
+function upSyncBar(){
+  var si=id('sync-info');
+  if(si)si.innerHTML='<span class="sync-dot"></span>실시간 동기화 중 · 마지막 업데이트: '+nowStr();
+}
+
+async function doSync(){
+  var si=id('sync-info');if(si)si.textContent='업데이트 중…';
+  try{
+    var rows=await loadFromDB();
+    rowsToState(rows);rCards();upSyncBar();
+  }catch(e){upSyncBar();}
+}
+
+// ─── 엑셀 업로드 ───────────────────────────────────────────
+document.getElementById('fi').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    var wb=XLSX.read(ev.target.result,{type:'array'});
+    var ws=wb.Sheets[wb.SheetNames[0]];
+    var raw=XLSX.utils.sheet_to_json(ws);
+    applyData(raw.map(function(row){
+      return {
+        game:st(row['게임']||row['게임명']),
+        pickup:st(row['픽업위치']||row['픽업']),
+        name:st(row['이름']),
+        contact:st(row['연락처']||row['전화번호']).replace(/\D/g,''),
+        carrier:st(row['통신사']),
+        notes:st(row['비고'])
+      };
+    }).filter(function(r){return r.name;}));
+  };
+  r.readAsArrayBuffer(f);
+  e.target.value='';
+});
+
+async function applyData(data){
+  var ltxt=id('ltxt');
+  show('loading');hide('root');
+  try{
+    // 기존 데이터 전체 삭제
+    await sbc.from('customers').delete().neq('id',0);
+    // 새 데이터 삽입
+    var rows=data.map(function(r){
+      return {
+        game:r.game||'',pickup:r.pickup||'',name:r.name||'',
+        contact:r.contact||'',carrier:r.carrier||'',notes:r.notes||'',
+        checked_in:false,boarded_back:false
+      };
+    });
+    var res=await sbc.from('customers').insert(rows).select();
+    if(res.error)throw res.error;
+    rowsToState(res.data||[]);
+    sP=null;sq='';idF='all';bdF='all';
+    var gs=uniq(C.map(function(c){return c.game;}));sG=gs[0]||null;
+    showMain();
+    setupRealtime();
+  }catch(e){
+    console.error('업로드 오류:',e);
+    alert('업로드 중 오류가 발생했습니다.\nSupabase 설정을 확인해 주세요.');
+    showEmpty();
+  }
+}
+
+function loadDemo(){
+  applyData(DEMO.map(function(r){
+    return {game:r.g,pickup:r.p,name:r.n,contact:r.t,carrier:r.cr,notes:r.nt};
+  }));
+}
+
+// ─── 샘플 다운로드 ─────────────────────────────────────────
+function dlSample(){
+  var wb=XLSX.utils.book_new();
+  var rows=[
+    ['게임','픽업위치','이름','연락처','통신사','비고'],
+    ['리그오브레전드','강남역','홍길동','01012345678','SKT',''],
+    ['리그오브레전드','강남역','김영희','01098765432','KT','VIP'],
+    ['리그오브레전드','홍대입구','이철수','01055556666','LGU+',''],
+    ['발로란트','강남역','박민수','01033334444','SKT',''],
+    ['발로란트','홍대입구','최지원','01077778888','KT','알레르기'],
+    ['배틀그라운드','잠실역','정다은','01011112222','SKT',''],
+  ];
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:16},{wch:12},{wch:10},{wch:14},{wch:8},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws,'참여자명단');
+  XLSX.writeFile(wb,'참여자명단_샘플.xlsx');
+}
+
+// ─── 초기화(삭제) ──────────────────────────────────────────
+function openReset(){id('ro').className='overlay show';}
+function closeReset(){id('ro').className='overlay';}
+async function doReset(){
+  try{
+    await sbc.from('customers').delete().neq('id',0);
+  }catch(e){console.error(e);}
+  C=[];SM={};sG=null;sP=null;sq='';idF='all';bdF='all';
+  if(realtimeChannel){sbc.removeChannel(realtimeChannel);realtimeChannel=null;}
+  closeReset();showEmpty();
+  id('reset-btn').style.display='none';
+  id('sync-btn').style.display='none';
+  var bar=id('sync-bar');if(bar)bar.style.display='none';
+}
+
+// ─── 탑승 토글 ─────────────────────────────────────────────
+async function tog(cid,type){
+  if(!SM[cid])SM[cid]={};
+  if(type==='b'&&!(SM[cid]&&SM[cid].i))return;
+  SM[cid][type]=!SM[cid][type];
+  if(type==='i'&&!SM[cid].i)SM[cid].b=false;
+  var update={checked_in:!!(SM[cid]&&SM[cid].i),boarded_back:!!(SM[cid]&&SM[cid].b)};
+  try{
+    await sbc.from('customers').update(update).eq('id',cid);
+  }catch(e){console.error(e);}
+  rCards();upSyncBar();
+}
+
+// ─── 유틸 ──────────────────────────────────────────────────
+function st(v){return String(v||'').trim();}
+function uniq(a){var s={},r=[];a.forEach(function(v){if(v&&!s[v]){s[v]=1;r.push(v);}});return r;}
+function ec(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function id(x){return document.getElementById(x);}
+function show(x){var e=id(x);if(e)e.style.display='block';}
+function hide(x){var e=id(x);if(e)e.style.display='none';}
+
+// ─── 검색 타입 ─────────────────────────────────────────────
+function setSType(type){
+  sType=type;
+  id('sp').className=type==='phone'?'stype-btn on':'stype-btn';
+  id('sn').className=type==='name'?'stype-btn on':'stype-btn';
+  var inp=id('si');if(!inp)return;
+  if(type==='phone'){
+    inp.setAttribute('inputmode','numeric');inp.setAttribute('pattern','[0-9]*');inp.setAttribute('maxlength','4');
+    inp.className='sinp';inp.placeholder='핸드폰 뒷자리 4자리';
+  }else{
+    inp.removeAttribute('inputmode');inp.removeAttribute('pattern');inp.setAttribute('maxlength','20');
+    inp.className='sinp name-m';inp.placeholder='이름 입력';
+  }
+  clrSrch();
+}
+
+// ─── 필터 칩 ───────────────────────────────────────────────
+function rChips(){
+  var ic=id('ic'),bc=id('bc');if(!ic||!bc)return;
+  ic.innerHTML=[{v:'all',l:'전체'},{v:'done',l:'확인완료'},{v:'pending',l:'미확인'}].map(function(c){
+    return '<button class="fchip'+(c.v===idF?' og':'')+'" onclick="setF(\'i\',\''+c.v+'\')">'+c.l+'</button>';
+  }).join('');
+  bc.innerHTML=[{v:'all',l:'전체'},{v:'done',l:'탑승신청'},{v:'pending',l:'미신청'}].map(function(c){
+    return '<button class="fchip'+(c.v===bdF?' ob':'')+'" onclick="setF(\'b\',\''+c.v+'\')">'+c.l+'</button>';
+  }).join('');
+}
+
+function setF(type,val){
+  if(type==='i'){idF=val;bdF='all';}else bdF=val;
+  rChips();rCards();
+}
+
+// ─── 탭 ────────────────────────────────────────────────────
+function rGTabs(){
+  var el=id('gtabs');if(!el)return;
+  var games=uniq(C.map(function(c){return c.game;}));
+  el.innerHTML=games.map(function(g){
+    var cnt=C.filter(function(c){return c.game===g;}).length;
+    return '<button class="tbtn'+(g===sG?' on':'')+'" onclick="selG(\''+ec(g)+'\')">'+g+' <span class="tcnt">'+cnt+'</span></button>';
+  }).join('');
+}
+
+function rPTabs(){
+  var el=id('ptabs');if(!el)return;
+  if(!sG){el.innerHTML='';return;}
+  var ps=uniq(C.filter(function(c){return c.game===sG;}).map(function(c){return c.pickup;}));
+  var ac=C.filter(function(c){return c.game===sG;}).length;
+  var h='<button class="pchip'+(sP===null?' on':'')+'" onclick="selP(null)">전체 '+ac+'</button>';
+  ps.forEach(function(p){
+    var cnt=C.filter(function(c){return c.game===sG&&c.pickup===p;}).length;
+    h+='<button class="pchip'+(sP===p?' on':'')+'" onclick="selP(\''+ec(p)+'\')">'+p+' '+cnt+'</button>';
+  });
+  el.innerHTML=h;
+}
+
+// ─── 필터링 ────────────────────────────────────────────────
+function isSr(){return sType==='phone'?sq.length===4:sq.length>=1;}
+
+function getF(){
+  var sr=isSr(),list=C;
+  if(sr){
+    if(sType==='phone')list=list.filter(function(c){return c.contact.slice(-4)===sq;});
+    else{var q=sq.toLowerCase();list=list.filter(function(c){return c.name.toLowerCase().indexOf(q)>=0;});}
+  }else{
+    if(sG)list=list.filter(function(c){return c.game===sG;});
+    if(sP)list=list.filter(function(c){return c.pickup===sP;});
+  }
+  if(idF==='done')list=list.filter(function(c){return SM[c.id]&&SM[c.id].i;});
+  else if(idF==='pending')list=list.filter(function(c){return !(SM[c.id]&&SM[c.id].i);});
+  if(bdF==='done')list=list.filter(function(c){return SM[c.id]&&SM[c.id].b;});
+  else if(bdF==='pending')list=list.filter(function(c){return (SM[c.id]&&SM[c.id].i)&&!(SM[c.id]&&SM[c.id].b);});
+  return list;
+}
+
+// ─── 카드 렌더 ─────────────────────────────────────────────
+function fmt(t){
+  if(t.length===11)return t.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');
+  if(t.length===10)return t.replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3');
+  return t;
+}
+function hl(text,q){
+  if(!q||sType!=='name')return text;
+  var i=text.toLowerCase().indexOf(q.toLowerCase());
+  if(i<0)return text;
+  return text.slice(0,i)+'<mark style="background:var(--b-bg);color:var(--b-t);border-radius:3px;padding:0 1px;">'+text.slice(i,i+q.length)+'</mark>'+text.slice(i+q.length);
+}
+
+function rCards(){
+  var sr=isSr();
+  var ts=id('tabs');if(ts)ts.style.display=sr?'none':'block';
+  var filtered=getF();
+  var scope=C.filter(function(c){
+    if(sr)return true;
+    if(sG&&c.game!==sG)return false;
+    if(sP&&c.pickup!==sP)return false;
+    return true;
+  });
+  var idD=scope.filter(function(c){return SM[c.id]&&SM[c.id].i;}).length;
+  var bdD=scope.filter(function(c){return SM[c.id]&&SM[c.id].b;}).length;
+  var svt=id('sv-t'),svi=id('sv-i'),svb=id('sv-b');
+  if(svt)svt.textContent=scope.length;
+  if(svi){svi.textContent=idD;svi.style.color=idD>0?'var(--g-t)':'var(--t1)';}
+  if(svb){svb.textContent=bdD;svb.style.color=bdD>0?'var(--b-t)':'var(--t1)';}
+  var sl=id('sl2');
+  if(sl){
+    if(sr&&sq){sl.style.display='block';sl.textContent='"'+sq+'" '+(sType==='phone'?'번호':'이름')+' 검색 · '+filtered.length+'명';}
+    else sl.style.display='none';
+  }
+  var cl=id('cl'),em=id('em');
+  if(!filtered.length){
+    if(cl)cl.innerHTML='';
+    if(em){em.style.display='block';em.textContent=sr?'"'+sq+'"에 해당하는 고객이 없습니다':'필터 조건에 맞는 고객이 없습니다';}
+    return;
+  }
+  if(em)em.style.display='none';
+  if(cl)cl.innerHTML=filtered.map(function(c){
+    var idOn=!!(SM[c.id]&&SM[c.id].i),bdOn=!!(SM[c.id]&&SM[c.id].b),can=idOn;
+    return '<div class="card'+(idOn?' done':'')+'">'
+      +'<div class="ctop"><div class="cname">'+hl(c.name,sq)+'</div>'
+      +'<div class="cbdgs">'+(idOn?'<span class="badge bg">출발완료</span>':'')+(bdOn?'<span class="badge bb">귀가신청</span>':'')+'</div></div>'
+      +'<div class="cmeta">'+c.game+(c.pickup?' · '+c.pickup:'')+'</div>'
+      +'<div class="cph">'+fmt(c.contact)+(c.carrier?'<span class="ccr">'+c.carrier+'</span>':'')+'</div>'
+      +(c.notes?'<div class="cnote">'+c.notes+'</div>':'')
+      +'<div class="cbtns">'
+      +'<button class="abtn aid'+(idOn?' on':'')+'" onclick="tog('+c.id+',\'i\')">'+(idOn?'✓ 출발탑승 완료':'출발탑승 확인')+'</button>'
+      +'<button class="abtn abd'+(bdOn?' on':'')+'" '+(can?'':'disabled')+' onclick="tog('+c.id+',\'b\')">'+(bdOn?'✓ 귀가탑승 신청':'귀가탑승')+'</button>'
+      +'</div>'
+      +(!can?'<div class="hint">출발탑승 확인 후 귀가탑승 활성화</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+function selG(g){sG=g;sP=null;rGTabs();rPTabs();rCards();}
+function selP(p){sP=p;rPTabs();rCards();}
+function onSrch(v){
+  if(sType==='phone')v=v.replace(/\D/g,'').slice(0,4);
+  sq=v;var i=id('si'),cb=id('cb');
+  if(i)i.value=v;if(cb)cb.style.display=v.length?'block':'none';
+  if(C.length)rCards();
+}
+function clrSrch(){
+  sq='';var i=id('si'),cb=id('cb');
+  if(i)i.value='';if(cb)cb.style.display='none';
+  if(C.length)rCards();
+}
+
+init();
+</script>
+</body>
+</html>
