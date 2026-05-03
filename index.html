@@ -339,7 +339,7 @@ document.getElementById('fi').addEventListener('change',function(e){
         game:st(row['게임']||row['게임명']),
         pickup:st(row['픽업위치']||row['픽업']),
         name:st(row['이름']),
-        contact:st(row['연락처']||row['전화번호']).replace(/\D/g,''),
+        contact:(function(){var t=st(row['연락처']||row['전화번호']).replace(/\D/g,'');if(t.length===10&&t[0]!=='0')t='0'+t;return t;})(),
         carrier:st(row['통신사']),
         notes:st(row['비고'])
       };
