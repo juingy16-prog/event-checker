@@ -198,6 +198,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
   </div>
 </div>
 
+<div class="overlay" id="uo">
+  <div class="modal">
+    <div class="mtit">명단 업로드</div>
+    <div class="msub">현재 탑승 확인 상태가 <span style="color:var(--r-t);font-weight:600;">전부 초기화</span>됩니다.<br>링크를 공유받은 모든 직원에게 즉시 반영됩니다.<br>계속하시겠습니까?</div>
+    <div class="mbtns">
+      <button style="background:var(--card2);color:var(--t2);border-color:var(--bd);" onclick="cancelUpload()">취소</button>
+      <button style="background:var(--b-bg);color:var(--b-t);border-color:var(--b-bd);" onclick="confirmUpload()">업로드</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="ro">
   <div class="modal">
     <div class="mtit">명단 전체 삭제</div>
@@ -310,6 +321,8 @@ async function doSync(){
 }
 
 // ─── 엑셀 업로드 ───────────────────────────────────────────
+var pendingUploadData=null;
+
 document.getElementById('fi').addEventListener('change',function(e){
   var f=e.target.files[0];if(!f)return;
   var r=new FileReader();
@@ -317,7 +330,7 @@ document.getElementById('fi').addEventListener('change',function(e){
     var wb=XLSX.read(ev.target.result,{type:'array'});
     var ws=wb.Sheets[wb.SheetNames[0]];
     var raw=XLSX.utils.sheet_to_json(ws);
-    applyData(raw.map(function(row){
+    var parsed=raw.map(function(row){
       return {
         game:st(row['게임']||row['게임명']),
         pickup:st(row['픽업위치']||row['픽업']),
@@ -326,11 +339,26 @@ document.getElementById('fi').addEventListener('change',function(e){
         carrier:st(row['통신사']),
         notes:st(row['비고'])
       };
-    }).filter(function(r){return r.name;}));
+    }).filter(function(r){return r.name;});
+    if(C.length>0){
+      pendingUploadData=parsed;
+      id('uo').className='overlay show';
+    }else{
+      applyData(parsed);
+    }
   };
   r.readAsArrayBuffer(f);
   e.target.value='';
 });
+
+function confirmUpload(){
+  id('uo').className='overlay';
+  if(pendingUploadData){applyData(pendingUploadData);pendingUploadData=null;}
+}
+function cancelUpload(){
+  id('uo').className='overlay';
+  pendingUploadData=null;
+}
 
 async function applyData(data){
   var ltxt=id('ltxt');
