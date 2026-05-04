@@ -139,7 +139,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
 
   <div id="sync-bar" class="sync-bar" style="display:none">
     <span class="sync-info" id="sync-info"></span>
-    <button class="chip" onclick="loadDemo()" style="font-size:11px;padding:4px 8px;">데모</button>
   </div>
 
   <div id="mc" style="display:none">
@@ -228,22 +227,6 @@ var sbc = supabase.createClient(SB_URL, SB_KEY);
 var C=[],SM={},sG=null,sP=null,sq='',idF='all',bdF='all',sType='phone';
 var realtimeChannel=null;
 
-var DEMO=[
-  {g:'리그오브레전드',p:'강남역',n:'김민준',t:'01012341111',cr:'SKT',nt:''},
-  {g:'리그오브레전드',p:'강남역',n:'이서연',t:'01056782222',cr:'KT',nt:''},
-  {g:'리그오브레전드',p:'강남역',n:'박지호',t:'01099993333',cr:'LGU+',nt:'VIP'},
-  {g:'리그오브레전드',p:'홍대입구',n:'최예린',t:'01034564444',cr:'SKT',nt:''},
-  {g:'리그오브레전드',p:'홍대입구',n:'정우진',t:'01078905555',cr:'KT',nt:''},
-  {g:'리그오브레전드',p:'잠실역',n:'한수빈',t:'01011116666',cr:'SKT',nt:''},
-  {g:'발로란트',p:'강남역',n:'오태양',t:'01055557777',cr:'LGU+',nt:''},
-  {g:'발로란트',p:'강남역',n:'임나은',t:'01099998888',cr:'SKT',nt:'알레르기'},
-  {g:'발로란트',p:'홍대입구',n:'강도현',t:'01012349999',cr:'KT',nt:''},
-  {g:'발로란트',p:'홍대입구',n:'윤지아',t:'01056780000',cr:'SKT',nt:''},
-  {g:'발로란트',p:'잠실역',n:'백승현',t:'01099991234',cr:'LGU+',nt:''},
-  {g:'배틀그라운드',p:'강남역',n:'신하은',t:'01011115678',cr:'SKT',nt:''},
-  {g:'배틀그라운드',p:'홍대입구',n:'구준혁',t:'01055559012',cr:'KT',nt:''},
-  {g:'배틀그라운드',p:'잠실역',n:'류채원',t:'01099993456',cr:'SKT',nt:''},
-];
 
 // ─── DB 로드 ───────────────────────────────────────────────
 async function loadFromDB(){
@@ -377,11 +360,6 @@ async function applyData(data){
   }
 }
 
-function loadDemo(){
-  applyData(DEMO.map(function(r){
-    return {game:r.g,pickup:r.p,name:r.n,contact:r.t,carrier:r.cr,notes:r.nt};
-  }));
-}
 
 // ─── 샘플 다운로드 ─────────────────────────────────────────
 function dlSample(){
