@@ -19,7 +19,14 @@ body{margin:0;padding:0;width:100%;min-height:100vh;background:#12141e;}
 }
 body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:14px;color:var(--t1);background:var(--bg);word-break:keep-all;overflow-wrap:break-word;overflow-x:hidden;}
 #root,#loading{width:100%;}
-.hd{background:var(--surf);border-bottom:1px solid var(--bd);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:20;}
+.sticky-hd{position:sticky;top:0;z-index:20;}
+.hd{background:var(--surf);border-bottom:1px solid var(--bd);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.top-stats{background:var(--surf);border-bottom:2px solid var(--bd);padding:7px 14px;display:none;align-items:center;}
+.top-stats.show{display:flex;}
+.ts-item{flex:1;display:flex;align-items:baseline;justify-content:center;gap:5px;}
+.ts-lbl{font-size:11px;color:var(--t3);}
+.ts-val{font-size:20px;font-weight:700;color:var(--t1);}
+.ts-sep{width:1px;height:22px;background:var(--bd);}
 .hd-l{min-width:0;flex:1;}
 .hd-title{font-size:15px;font-weight:600;color:var(--t1);}
 .hd-sub{font-size:11px;color:var(--t2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -128,6 +135,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
 </div>
 
 <div id="root" style="display:none">
+  <div class="sticky-hd">
   <div class="hd">
     <div class="hd-l">
       <div class="hd-title">참여자 확인</div>
@@ -152,6 +160,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
   <div id="sync-bar" class="sync-bar" style="display:none">
     <span class="sync-info" id="sync-info"></span>
   </div>
+  <div id="top-stats" class="top-stats">
+    <div class="ts-item"><span class="ts-lbl">전체</span><span class="ts-val" id="ts-t">0</span></div>
+    <div class="ts-sep"></div>
+    <div class="ts-item"><span class="ts-lbl">출발탑승</span><span class="ts-val" id="ts-i">0</span></div>
+    <div class="ts-sep"></div>
+    <div class="ts-item"><span class="ts-lbl">귀가탑승</span><span class="ts-val" id="ts-b">0</span></div>
+  </div>
+  </div><!-- /sticky-hd -->
 
   <div id="mc" style="display:none">
     <div class="search-wrap">
@@ -205,13 +221,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
   </div>
 </div>
 
-<div class="flt" id="flt">
-  <div class="flt-item"><div class="flt-lbl">전체</div><div class="flt-val" id="flt-t">0</div></div>
-  <div class="flt-sep"></div>
-  <div class="flt-item"><div class="flt-lbl">출발탑승</div><div class="flt-val" id="flt-i">0</div></div>
-  <div class="flt-sep"></div>
-  <div class="flt-item"><div class="flt-lbl">귀가탑승</div><div class="flt-val" id="flt-b">0</div></div>
-</div>
 
 <div class="overlay" id="uo">
   <div class="modal">
@@ -310,7 +319,7 @@ function showMain(){
   id('reset-btn').style.display='inline-flex';
   id('sync-btn').style.display='inline-flex';
   id('total-lbl').textContent='총 '+C.length+'명 등록됨';
-  var flt=id('flt');if(flt)flt.className='flt show';
+  var ts=id('top-stats');if(ts)ts.className='top-stats show';
   upSyncBar();
   rGTabs();rPTabs();rChips();rCards();
 }
@@ -443,7 +452,7 @@ async function doReset(){
   id('reset-btn').style.display='none';
   id('sync-btn').style.display='none';
   var bar=id('sync-bar');if(bar)bar.style.display='none';
-  var flt=id('flt');if(flt)flt.className='flt';
+  var ts=id('top-stats');if(ts)ts.className='top-stats';
 }
 
 // ─── 탑승 토글 ─────────────────────────────────────────────
@@ -593,7 +602,7 @@ function rCards(){
   });
   var idD=scope.filter(function(c){return SM[c.id]&&SM[c.id].i;}).length;
   var bdD=scope.filter(function(c){return SM[c.id]&&SM[c.id].b;}).length;
-  var ft=id('flt-t'),fi=id('flt-i'),fb=id('flt-b');
+  var ft=id('ts-t'),fi=id('ts-i'),fb=id('ts-b');
   if(ft)ft.textContent=scope.length;
   if(fi){fi.textContent=idD;fi.style.color=idD>0?'var(--g-t)':'var(--t1)';}
   if(fb){fb.textContent=bdD;fb.style.color=bdD>0?'var(--b-t)':'var(--t1)';}
