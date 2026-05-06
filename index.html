@@ -82,7 +82,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
 .cpybtn{background:var(--card2);border:1px solid var(--bd);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--t3);font-size:11px;font-family:inherit;line-height:1.6;flex-shrink:0;transition:all .1s;}
 .cpybtn.ok{color:var(--g-t);border-color:var(--g-bd);background:var(--g-bg);}
 .memo-wrap{margin-top:8px;}
-.memo-inp{width:100%;background:var(--card2);border:1px solid var(--bd);border-radius:8px;color:var(--t1);font-size:12px;padding:7px 10px;font-family:inherit;resize:none;outline:none;line-height:1.5;display:block;}
+.memo-inp{width:100%;background:var(--card2);border:1px solid var(--bd);border-radius:8px;color:var(--t1);font-size:12px;padding:5px 10px;font-family:inherit;resize:none;outline:none;line-height:1.4;display:block;height:30px;overflow:hidden;}
 .memo-inp:focus{border-color:var(--b-t);}
 .memo-inp::placeholder{color:var(--t3);}
 .empty-r{padding:48px 14px;text-align:center;color:var(--t3);font-size:14px;background:var(--bg);display:none;}
@@ -630,7 +630,7 @@ function rCards(){
       +'<button class="cpybtn" onclick="copyPhone(\''+c.contact+'\',this)">복사</button>'
       +'</div>'
       +(c.notes?'<div class="cnote">'+c.notes+'</div>':'')
-      +'<div class="memo-wrap"><textarea class="memo-inp" data-cid="'+c.id+'" rows="2" placeholder="메모..." oninput="saveMemo('+c.id+',this.value)">'+memo+'</textarea></div>'
+      +'<div class="memo-wrap"><textarea class="memo-inp" data-cid="'+c.id+'" rows="1" placeholder="메모..." oninput="saveMemo('+c.id+',this.value)">'+memo+'</textarea></div>'
       +'<div class="cbtns">'
       +'<button class="abtn aid'+(idOn?' on':'')+'" onclick="tog('+c.id+',\'i\')">'+(idOn?'✓ 출발탑승 완료':'출발탑승 확인')+'</button>'
       +'<button class="abtn abd'+(bdOn?' on':'')+'" '+(can?'':'disabled')+' onclick="tog('+c.id+',\'b\')">'+(bdOn?'✓ 귀가탑승 신청':'귀가탑승')+'</button>'
