@@ -65,7 +65,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
 .fchip.og{background:var(--g-bg);border-color:var(--g-bd);color:var(--g-t);font-weight:600;}
 .fchip.ob{background:var(--b-bg);border-color:var(--b-bd);color:var(--b-t);font-weight:600;}
 .slbl2{padding:8px 14px 0;font-size:12px;color:var(--t2);display:none;}
-.list{padding:10px 14px 40px;background:var(--bg);}
+.list{padding:10px 14px 90px;background:var(--bg);}
+.flt{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;background:rgba(26,30,46,.97);border:1px solid var(--bd2);border-radius:32px;padding:10px 22px;display:none;align-items:center;box-shadow:0 4px 28px rgba(0,0,0,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+.flt.show{display:flex;}
+.flt-item{display:flex;flex-direction:column;align-items:center;min-width:52px;}
+.flt-lbl{font-size:10px;color:var(--t3);margin-bottom:2px;}
+.flt-val{font-size:20px;font-weight:700;line-height:1;color:var(--t1);}
+.flt-sep{width:1px;height:30px;background:var(--bd);margin:0 14px;}
+.cpybtn{background:var(--card2);border:1px solid var(--bd);border-radius:6px;padding:2px 8px;cursor:pointer;color:var(--t3);font-size:11px;font-family:inherit;line-height:1.6;flex-shrink:0;transition:all .1s;}
+.cpybtn.ok{color:var(--g-t);border-color:var(--g-bd);background:var(--g-bg);}
+.memo-wrap{margin-top:8px;}
+.memo-inp{width:100%;background:var(--card2);border:1px solid var(--bd);border-radius:8px;color:var(--t1);font-size:12px;padding:7px 10px;font-family:inherit;resize:none;outline:none;line-height:1.5;display:block;}
+.memo-inp:focus{border-color:var(--b-t);}
+.memo-inp::placeholder{color:var(--t3);}
 .empty-r{padding:48px 14px;text-align:center;color:var(--t3);font-size:14px;background:var(--bg);display:none;}
 .card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:13px;margin-bottom:8px;}
 .card.done{border-left:3px solid var(--g-t);}
@@ -154,11 +166,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
       </div>
     </div>
 
-    <div class="stats">
-      <div class="stat"><div class="slbl">전체</div><div class="sval" id="sv-t">0</div></div>
-      <div class="stat"><div class="slbl">출발탑승</div><div class="sval" id="sv-i">0</div></div>
-      <div class="stat"><div class="slbl">귀가탑승</div><div class="sval" id="sv-b">0</div></div>
-    </div>
 
     <div id="tabs">
       <div class="tabbar" id="gtabs"></div>
@@ -196,6 +203,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun 
       </button>
     </div>
   </div>
+</div>
+
+<div class="flt" id="flt">
+  <div class="flt-item"><div class="flt-lbl">전체</div><div class="flt-val" id="flt-t">0</div></div>
+  <div class="flt-sep"></div>
+  <div class="flt-item"><div class="flt-lbl">출발탑승</div><div class="flt-val" id="flt-i">0</div></div>
+  <div class="flt-sep"></div>
+  <div class="flt-item"><div class="flt-lbl">귀가탑승</div><div class="flt-val" id="flt-b">0</div></div>
 </div>
 
 <div class="overlay" id="uo">
@@ -252,7 +267,7 @@ function rowsToState(rows){
   });
   SM={};
   rows.forEach(function(r){
-    if(r.checked_in||r.boarded_back)SM[r.id]={i:r.checked_in,b:r.boarded_back};
+    if(r.checked_in||r.boarded_back||r.memo)SM[r.id]={i:r.checked_in,b:r.boarded_back,memo:r.memo||''};
   });
 }
 
@@ -295,6 +310,7 @@ function showMain(){
   id('reset-btn').style.display='inline-flex';
   id('sync-btn').style.display='inline-flex';
   id('total-lbl').textContent='총 '+C.length+'명 등록됨';
+  var flt=id('flt');if(flt)flt.className='flt show';
   upSyncBar();
   rGTabs();rPTabs();rChips();rCards();
 }
@@ -427,6 +443,7 @@ async function doReset(){
   id('reset-btn').style.display='none';
   id('sync-btn').style.display='none';
   var bar=id('sync-bar');if(bar)bar.style.display='none';
+  var flt=id('flt');if(flt)flt.className='flt';
 }
 
 // ─── 탑승 토글 ─────────────────────────────────────────────
@@ -446,9 +463,31 @@ async function tog(cid,type){
 function st(v){return String(v||'').trim();}
 function uniq(a){var s={},r=[];a.forEach(function(v){if(v&&!s[v]){s[v]=1;r.push(v);}});return r;}
 function ec(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function id(x){return document.getElementById(x);}
 function show(x){var e=id(x);if(e)e.style.display='block';}
 function hide(x){var e=id(x);if(e)e.style.display='none';}
+
+// ─── 전화번호 복사 ─────────────────────────────────────────
+function copyPhone(num,btn){
+  var raw=num.replace(/\D/g,'');
+  function ok(){btn.textContent='복사됨';btn.className='cpybtn ok';setTimeout(function(){btn.textContent='복사';btn.className='cpybtn';},1500);}
+  if(navigator.clipboard){navigator.clipboard.writeText(raw).then(ok).catch(function(){fallback();});}
+  else{fallback();}
+  function fallback(){var t=document.createElement('textarea');t.value=raw;document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}catch(e){}document.body.removeChild(t);}
+}
+
+// ─── 메모 저장 (800ms 디바운스) ────────────────────────────
+var memoTimers={};
+async function saveMemo(cid,text){
+  if(!SM[cid])SM[cid]={};
+  SM[cid].memo=text;
+  if(memoTimers[cid])clearTimeout(memoTimers[cid]);
+  memoTimers[cid]=setTimeout(async function(){
+    try{await sbc.from('customers').update({memo:text}).eq('id',cid);}catch(e){console.error(e);}
+    upSyncBar();
+  },800);
+}
 
 // ─── 검색 타입 ─────────────────────────────────────────────
 function setSType(type){
@@ -538,6 +577,11 @@ function hl(text,q){
 }
 
 function rCards(){
+  var focusedMemo=null;
+  var active=document.activeElement;
+  if(active&&active.classList.contains('memo-inp')){
+    focusedMemo={cid:active.dataset.cid,val:active.value,ss:active.selectionStart,se:active.selectionEnd};
+  }
   var sr=isSr();
   var ts=id('tabs');if(ts)ts.style.display=sr?'none':'block';
   var filtered=getF();
@@ -549,10 +593,10 @@ function rCards(){
   });
   var idD=scope.filter(function(c){return SM[c.id]&&SM[c.id].i;}).length;
   var bdD=scope.filter(function(c){return SM[c.id]&&SM[c.id].b;}).length;
-  var svt=id('sv-t'),svi=id('sv-i'),svb=id('sv-b');
-  if(svt)svt.textContent=scope.length;
-  if(svi){svi.textContent=idD;svi.style.color=idD>0?'var(--g-t)':'var(--t1)';}
-  if(svb){svb.textContent=bdD;svb.style.color=bdD>0?'var(--b-t)':'var(--t1)';}
+  var ft=id('flt-t'),fi=id('flt-i'),fb=id('flt-b');
+  if(ft)ft.textContent=scope.length;
+  if(fi){fi.textContent=idD;fi.style.color=idD>0?'var(--g-t)':'var(--t1)';}
+  if(fb){fb.textContent=bdD;fb.style.color=bdD>0?'var(--b-t)':'var(--t1)';}
   var sl=id('sl2');
   if(sl){
     if(sr&&sq){sl.style.display='block';sl.textContent='"'+sq+'" '+(sType==='phone'?'번호':'이름')+' 검색 · '+filtered.length+'명';}
@@ -567,12 +611,17 @@ function rCards(){
   if(em)em.style.display='none';
   if(cl)cl.innerHTML=filtered.map(function(c){
     var idOn=!!(SM[c.id]&&SM[c.id].i),bdOn=!!(SM[c.id]&&SM[c.id].b),can=idOn;
+    var memo=esc(SM[c.id]&&SM[c.id].memo||'');
     return '<div class="card'+(idOn?' done':'')+'">'
       +'<div class="ctop"><div class="cname">'+hl(c.name,sq)+'</div>'
       +'<div class="cbdgs">'+(idOn?'<span class="badge bg">출발완료</span>':'')+(bdOn?'<span class="badge bb">귀가신청</span>':'')+'</div></div>'
       +'<div class="cmeta">'+c.game+(c.pickup?' · '+c.pickup:'')+'</div>'
-      +'<div class="cph">'+fmt(c.contact)+(c.carrier?'<span class="ccr">'+c.carrier+'</span>':'')+'</div>'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
+      +'<span class="cph">'+fmt(c.contact)+(c.carrier?'<span class="ccr">'+c.carrier+'</span>':'')+'</span>'
+      +'<button class="cpybtn" onclick="copyPhone(\''+c.contact+'\',this)">복사</button>'
+      +'</div>'
       +(c.notes?'<div class="cnote">'+c.notes+'</div>':'')
+      +'<div class="memo-wrap"><textarea class="memo-inp" data-cid="'+c.id+'" rows="2" placeholder="메모..." oninput="saveMemo('+c.id+',this.value)">'+memo+'</textarea></div>'
       +'<div class="cbtns">'
       +'<button class="abtn aid'+(idOn?' on':'')+'" onclick="tog('+c.id+',\'i\')">'+(idOn?'✓ 출발탑승 완료':'출발탑승 확인')+'</button>'
       +'<button class="abtn abd'+(bdOn?' on':'')+'" '+(can?'':'disabled')+' onclick="tog('+c.id+',\'b\')">'+(bdOn?'✓ 귀가탑승 신청':'귀가탑승')+'</button>'
@@ -580,6 +629,10 @@ function rCards(){
       +(!can?'<div class="hint">출발탑승 확인 후 귀가탑승 활성화</div>':'')
       +'</div>';
   }).join('');
+  if(focusedMemo){
+    var mel=document.querySelector('.memo-inp[data-cid="'+focusedMemo.cid+'"]');
+    if(mel){mel.value=focusedMemo.val;mel.focus();try{mel.setSelectionRange(focusedMemo.ss,focusedMemo.se);}catch(e){}}
+  }
 }
 
 function selG(g){sG=g;sP=null;rGTabs();rPTabs();rCards();}
